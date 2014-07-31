@@ -52,7 +52,7 @@ private:
     void updateMidiPlayPosition();
     MidiMessageSequence trackSequence;//pointer to track we will play
     MidiMessageSequence::MidiEventHolder* playEvent;//pointer to an individual midi event
-    bool holdOn;
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };

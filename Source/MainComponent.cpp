@@ -10,7 +10,7 @@
 
 
 //==============================================================================
-MainContentComponent::MainContentComponent(): playbackSpeed(0.35)
+MainContentComponent::MainContentComponent(): playbackSpeed(0.75)
 {
     setSize (500, 400);
     
@@ -23,7 +23,6 @@ MainContentComponent::MainContentComponent(): playbackSpeed(0.35)
 	midiOutputBox.addListener (this);
 	
 	midiOutputDevice = NULL;
-    holdOn = false;
     
     
     String location = "../../../../exampleMidiFiles/midiScale.mid";
@@ -103,33 +102,41 @@ void MainContentComponent::updateMidiPlayPositionToMillis(float millisPosition){
     int numEvents = trackSequence.getNumEvents();
     int useCount = (int)millisPosition;//(int)(millisCounter * playbackSpeed);//relative to 1ms = 1 tick
     
+    MidiMessageSequence::MidiEventHolder* outputEvent;
+    
     while (midiPlayIndex < numEvents && trackSequence.getEventTime(midiPlayIndex) < useCount){
         //we have caught up to where we are
         // index++;
-        std::cout << "play index " << midiPlayIndex << " at time " << trackSequence.getEventTime(midiPlayIndex) << std::endl;
-        
-        //        MidiMessage message;
-        //      getEventPointer(midiPlayIndex);
+        //std::cout << "play index " << midiPlayIndex << " at time " << trackSequence.getEventTime(midiPlayIndex) << std::endl;
         
         if (midiPlayIndex >= 0){
-            //holdOn = true;
-            MidiMessageSequence::MidiEventHolder* outputEvent = trackSequence.getEventPointer(midiPlayIndex);
+
+            outputEvent = trackSequence.getEventPointer(midiPlayIndex);
+            
             if (outputEvent->message.isNoteOnOrOff()){
                 midiOutputDevice->sendMessageNow(outputEvent->message);
                 if (outputEvent->message.isNoteOn()){
                     int tmp = trackSequence.getIndexOfMatchingKeyUp(midiPlayIndex);
-                    std::cout << "NOTE ON index " << midiPlayIndex << " has up key " << tmp << std::endl;
+                    std::cout << "NOTE ON,  index " << midiPlayIndex << " has up key " << tmp << std::endl;
+                } else {
+                    std::cout << "NOTE Off, index " << midiPlayIndex << std::endl;
                 }
             }
             else
                 std::cout << "event " << midiPlayIndex << " is not note on/off" << std::endl;
             
-            //holdOn = false;
         }
+        
+        midiPlayIndex++;
+        
         int64 timenow = juce::Time::currentTimeMillis();
         std::cout << "timer callback " << timenow << std::endl;
-        midiPlayIndex++;
+        
     }
+    
+    outputEvent = NULL;
+    delete outputEvent;
+
 }
 
 void MainContentComponent::loadMidiFile(String fileLocation){
